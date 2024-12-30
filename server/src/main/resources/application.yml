@@ -1,0 +1,73 @@
+server:
+  port: 8081
+
+spring:
+  #  aop:
+  #    proxy-target-class: true
+  devtools:
+    restart:
+      enabled:
+        true
+  profiles:
+    active: dev
+  main:
+    allow-circular-references: true
+  datasource:
+    druid:
+      driver-class-name: ${wjy.datasource.driver-class-name}
+      url: jdbc:mysql://${wjy.datasource.host}:${wjy.datasource.port}/${wjy.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: ${wjy.datasource.username}
+      password: ${wjy.datasource.password}
+  data:
+    redis:
+      host: localhost
+      database: 10
+      port: 6379
+
+mybatis:
+  #mapper配置文件
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.wjy.entity
+  configuration:
+    #开启驼峰命名
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com:
+      wjy:
+        mapper: debug
+        service: debug
+        controller: info
+
+wjy:
+  jwt:
+    # 设置jwt签名加密时使用的秘钥
+    admin-secret-key: ${wjy.jwt.admin-secret-key}
+    # 设置jwt过期时间
+    admin-ttl: 7200000000
+    # 设置前端传递过来的令牌名称
+    admin-token-name: ${wjy.jwt.admin-token-name}
+    user-secret-key: ${wjy.jwt.user-secret-key}
+    user-ttl: 7200000000
+    # 设置前端传递过来的令牌名称
+    user-token-name: ${wjy.jwt.user-token-name}
+  minio:
+    # API 端点
+    endpoint: ${wjy.minio.endpoint}
+    # 上传的 Bucket
+    bucket-name: ${wjy.minio.bucket-name}
+    # Access Key
+    access-key: ${wjy.minio.access-key}
+    # Secret Key
+    secret-key: ${wjy.minio.secret-key}
+  wechat:
+    appid: ${wjy.wechat.appid}
+    secret: ${wjy.wechat.secret}
+
+# knife4j的增强配置，不需要增强可以不配
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+

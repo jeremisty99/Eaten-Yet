@@ -3,4 +3,4 @@
 
 ![svg](https://forthebadge.com/images/badges/made-with-java.svg)
 
-基于 Springboot3 + Mybatis Plus + Minio 的苍穹外卖联系项目
+基于 Springboot3 + Mybatis Plus + Minio 的苍穹外卖练习项目

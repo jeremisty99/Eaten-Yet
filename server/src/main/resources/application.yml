@@ -64,6 +64,8 @@ wjy:
   wechat:
     appid: ${wjy.wechat.appid}
     secret: ${wjy.wechat.secret}
+  shop:
+    address: ${wjy.shop.address}
 
 # knife4j的增强配置，不需要增强可以不配
 knife4j:

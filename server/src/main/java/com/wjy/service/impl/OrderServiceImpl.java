@@ -1,5 +1,6 @@
 package com.wjy.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -17,6 +18,7 @@ import com.wjy.mapper.ShoppingCartMapper;
 import com.wjy.result.PageResult;
 import com.wjy.service.OrderService;
 import com.wjy.vo.*;
+import com.wjy.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +44,8 @@ public class OrderServiceImpl implements OrderService {
     private AddressBookMapper addressBookMapper;
     @Autowired
     private ShoppingCartMapper shoppingCartMapper;
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     /**
      * 用户下单
@@ -318,6 +324,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 催单
+     *
+     * @param id
+     */
+    @Override
+    public void reminder(Long id) {
+        Orders orders = orderMapper.selectById(id);
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        Map map = new HashMap();
+        map.put("type", 2); // 来单提醒
+        map.put("orderId", orders.getId());
+        map.put("content", "订单号：" + orders.getNumber());
+        webSocketServer.sendToAllClient(JSON.toJSONString(map));
+    }
+
+    /**
      * 订单详情
      *
      * @param id
@@ -408,5 +432,11 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.updateById(orders);
+        // 发送消息，通知下单成功
+        Map map = new HashMap();
+        map.put("type", 1); // 来单提醒
+        map.put("orderId", orders.getId());
+        map.put("content", "订单号：" + outTradeNo);
+        webSocketServer.sendToAllClient(JSON.toJSONString(map));
     }
 }

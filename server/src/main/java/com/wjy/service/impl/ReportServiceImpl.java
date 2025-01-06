@@ -11,12 +11,20 @@ import com.wjy.mapper.OrderMapper;
 import com.wjy.mapper.UserMapper;
 import com.wjy.result.Result;
 import com.wjy.service.ReportService;
+import com.wjy.service.WorkspaceService;
 import com.wjy.vo.*;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,6 +40,8 @@ public class ReportServiceImpl implements ReportService {
     private UserMapper userMapper;
     @Autowired
     private OrderDetailMapper orderDetailMapper;
+    @Autowired
+    private WorkspaceService workspaceService;
 
     /**
      * 营业额统计
@@ -167,6 +177,62 @@ public class ReportServiceImpl implements ReportService {
                 .numberList(StringUtils.join(numberList, ","))
                 .nameList(StringUtils.join(nameList, ","))
                 .build());
+    }
+
+    /**
+     * 导出报表
+     *
+     * @param response
+     */
+    @Override
+    public void export(HttpServletResponse response) {
+        // 查数据
+        LocalDate begin = LocalDate.now().minusDays(30);
+        // 日期 转 日期加时间，转的时候要指定时间字段
+        LocalDateTime beginTime = LocalDateTime.of(begin, LocalTime.MIN);
+        LocalDate end = LocalDate.now().minusDays(1);
+        LocalDateTime endTime = LocalDateTime.of(end, LocalTime.MAX);
+        BusinessDataVO businessData = workspaceService.getBusinessData(beginTime, endTime);
+        // 写入到excel
+        try {
+            InputStream in = this.getClass().getClassLoader().getResourceAsStream("template/运营数据报表模板.xlsx");
+            // 基于模板创建excel
+            XSSFWorkbook excel = new XSSFWorkbook(in);
+            XSSFSheet sheet = excel.getSheetAt(0);
+            // 第2行写入时间字段
+            sheet.getRow(1).getCell(1).setCellValue(begin + " 至 " + end);
+            // 第4、5行写入概览数据
+            XSSFRow row4 = sheet.getRow(3);
+            // 获取单元格，填入营业额、订单完成率、新增用户数量
+            row4.getCell(2).setCellValue(businessData.getTurnover());
+            row4.getCell(4).setCellValue(businessData.getOrderCompletionRate());
+            row4.getCell(6).setCellValue(businessData.getNewUsers());
+            XSSFRow row5 = sheet.getRow(4);
+            // 获取单元格，填入有效订单数、订单平均价格
+            row5.getCell(2).setCellValue(businessData.getValidOrderCount());
+            row5.getCell(4).setCellValue(businessData.getUnitPrice());
+            for (int i = 0; i < 30; i++) {
+                LocalDate date = begin.plusDays(i);
+                businessData = workspaceService.getBusinessData(LocalDateTime.of(date, LocalTime.MIN), LocalDateTime.of(date, LocalTime.MAX));
+                XSSFRow row = sheet.getRow(7 + i);
+                row.getCell(1).setCellValue(date.toString());
+                row.getCell(2).setCellValue(businessData.getTurnover());
+                row.getCell(3).setCellValue(businessData.getValidOrderCount());
+                row.getCell(4).setCellValue(businessData.getOrderCompletionRate());
+                row.getCell(5).setCellValue(businessData.getUnitPrice());
+                row.getCell(6).setCellValue(businessData.getNewUsers());
+            }
+            // 创建输出流，excel数据放进流里，通过输出流将文件下载到客户端浏览器中
+            ServletOutputStream out = response.getOutputStream();
+            excel.write(out);
+            // 关闭资源
+            out.flush();
+            out.close();
+            excel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // 输出流
     }
 
     private List<LocalDate> getDateList(String begin, String end) {

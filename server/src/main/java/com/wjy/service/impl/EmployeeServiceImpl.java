@@ -11,6 +11,7 @@ import com.wjy.context.BaseContext;
 import com.wjy.dto.EmployeeDTO;
 import com.wjy.dto.EmployeeLoginDTO;
 import com.wjy.dto.EmployeePageQueryDTO;
+import com.wjy.dto.PasswordEditDTO;
 import com.wjy.entity.Employee;
 import com.wjy.exception.AccountLockedException;
 import com.wjy.exception.AccountNotFoundException;
@@ -26,6 +27,7 @@ import org.springframework.util.DigestUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 @Slf4j
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -138,6 +140,30 @@ public class EmployeeServiceImpl implements EmployeeService {
     public void update(EmployeeDTO employeeDTO) {
         Employee employee = new Employee();
         BeanUtils.copyProperties(employeeDTO, employee);
+        employeeMapper.updateById(employee);
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param passwordEditDTO
+     */
+    @Override
+    public void editPassword(PasswordEditDTO passwordEditDTO) {
+        String oldPwd = passwordEditDTO.getOldPassword();
+        // 将前端传过来的旧密码进行MD5加密
+        oldPwd = DigestUtils.md5DigestAsHex(oldPwd.getBytes());
+        // 根据id查询当前账号信息
+        Employee employee = employeeMapper.selectOne(
+                new QueryWrapper<Employee>().eq("id", BaseContext.getCurrentId())
+        );
+        // 和之前存进数据库的加密的密码进行比对，看看是否一样，不一样要抛异常
+        if (!oldPwd.equals(employee.getPassword())) {
+            throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
+        }
+        String newPwd = passwordEditDTO.getNewPassword();
+        newPwd = DigestUtils.md5DigestAsHex(newPwd.getBytes());
+        employee.setPassword(newPwd);
         employeeMapper.updateById(employee);
     }
 

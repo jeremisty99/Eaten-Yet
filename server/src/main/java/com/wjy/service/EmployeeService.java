@@ -3,6 +3,7 @@ package com.wjy.service;
 import com.wjy.dto.EmployeeDTO;
 import com.wjy.dto.EmployeeLoginDTO;
 import com.wjy.dto.EmployeePageQueryDTO;
+import com.wjy.dto.PasswordEditDTO;
 import com.wjy.entity.Employee;
 import com.wjy.result.PageResult;
 
@@ -53,4 +54,11 @@ public interface EmployeeService {
      * @param employeeDTO
      */
     void update(EmployeeDTO employeeDTO);
+
+    /**
+     * 修改密码
+     *
+     * @param passwordEditDTO
+     */
+    void editPassword(PasswordEditDTO passwordEditDTO);
 }

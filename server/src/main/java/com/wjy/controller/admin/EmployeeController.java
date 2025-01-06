@@ -4,6 +4,7 @@ import com.wjy.constant.JwtClaimsConstant;
 import com.wjy.dto.EmployeeDTO;
 import com.wjy.dto.EmployeeLoginDTO;
 import com.wjy.dto.EmployeePageQueryDTO;
+import com.wjy.dto.PasswordEditDTO;
 import com.wjy.entity.Employee;
 import com.wjy.properties.JwtProperties;
 import com.wjy.result.PageResult;
@@ -88,6 +89,17 @@ public class EmployeeController {
     @PostMapping
     public Result<String> add(@RequestBody EmployeeDTO employeeDTO) {
         employeeService.add(employeeDTO);
+        return Result.success();
+    }
+
+        /**
+     * 修改当前登录账号的密码
+     * @param employeeFixPwdDTO
+     * @return
+     */
+    @PutMapping("/editPassword")
+    public Result editPassword(@RequestBody PasswordEditDTO PasswordEditDTO){
+        employeeService.editPassword(PasswordEditDTO);
         return Result.success();
     }
 

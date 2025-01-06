@@ -5,6 +5,9 @@ import com.wjy.vo.OrderReportVO;
 import com.wjy.vo.SalesTop10ReportVO;
 import com.wjy.vo.TurnoverReportVO;
 import com.wjy.vo.UserReportVO;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
 
 public interface ReportService {
     /**
@@ -41,4 +44,10 @@ public interface ReportService {
      * @return
      */
     Result<SalesTop10ReportVO> salesTop10(String begin, String end);
+
+    /**
+     * 导出数据报表
+     * @param response
+     */
+    void export(HttpServletResponse response);
 }
